@@ -165,4 +165,21 @@ async def help_command(interaction: discord.Interaction):
     help_text = "\n".join(commands_list)
     await interaction.response.send_message(f"**Available Commands:**\n{help_text}")
 
+# Cat Fact Command
+@client.tree.command(name="catfact", description="Get a random cat fact")
+async def catfact(interaction: discord.Interaction):
+    url = "https://catfact.ninja/fact"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            data = await resp.json()
+    
+    fact = data.get("fact")
+    
+    if not fact:
+        await interaction.response.send_message("Could not fetch a cat fact")
+        return
+    
+    await interaction.response.send_message(f"Cat Fact: {fact}")
+
 client.run(TOKEN)

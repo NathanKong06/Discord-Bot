@@ -155,7 +155,12 @@ Show all available commands.
   /nationality — Predict nationality from a name
   /allinfo — Predict age, gender, and nationality from a name
   /help — Show all available commands
+  and more!
   ```
+
+### `/catfact`
+
+Get a random cat fact.
 
 ## Notes
 
@@ -163,6 +168,7 @@ Show all available commands.
   - [Genderize.io](https://genderize.io/)
   - [Agify.io](https://agify.io/)
   - [Nationalize.io](https://nationalize.io/)
+  - [Catfact.ninja](https://catfact.ninja/)
 
 - Accuracy depends on the data available in these APIs.
 
