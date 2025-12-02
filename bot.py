@@ -129,7 +129,7 @@ async def allinfo(interaction: discord.Interaction, name: str, country: Optional
         nat_data = await query_api(session, f"https://api.nationalize.io?name={name}")
         countries = nat_data.get("country", [])
 
-    reply = f"**Name:** {name}\n"
+    reply = f"**Name:** {name}\n**Country Applied:** {country if country else 'Global'}\n"
 
     # Gender
     if gender_value:
