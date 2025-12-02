@@ -46,15 +46,15 @@ async def gender(interaction: discord.Interaction, name: str, country: Optional[
         await interaction.response.send_message(f"Could not determine gender for `{name}`")
         return
 
-    reply = f"**Name:** {name}\n"
+    embed = discord.Embed(title=f"Gender Prediction for {name}", color=discord.Color.purple())
+    embed.add_field(name="Name", value=name, inline=False)
     if country_used:
-        reply += f"**Country Applied:** {country_used}\n"
-    reply += (
-        f"**Gender:** {gender_value.capitalize()}\n"
-        f"**Probability:** {round(probability * 100)}%\n"
-        f"**Based on:** {count} sample(s)"
-    )
-    await interaction.response.send_message(reply)
+        embed.add_field(name="Country Applied", value=country_used, inline=False)
+    embed.add_field(name="Gender", value=gender_value.capitalize(), inline=False)
+    embed.add_field(name="Probability", value=f"{round(probability * 100)}%", inline=False)
+    embed.add_field(name="Based on Samples", value=f"{count:,}", inline=False)
+
+    await interaction.response.send_message(embed=embed)
 
 # Age Command
 @client.tree.command(name="age", description="Predict age from a name")
@@ -78,11 +78,14 @@ async def age(interaction: discord.Interaction, name: str, country: Optional[str
         await interaction.response.send_message(f"Could not determine age for `{name}`")
         return
 
-    reply = f"**Name:** {name}\n"
+    embed = discord.Embed(title=f"Age Prediction for {name}", color=discord.Color.orange())
+    embed.add_field(name="Name", value=name, inline=False)
     if country_used:
-        reply += f"**Country Applied:** {country_used}\n"
-    reply += f"**Predicted Age:** {age_value}\n**Based on:** {count} sample(s)"
-    await interaction.response.send_message(reply)
+        embed.add_field(name="Country Applied", value=country_used, inline=False)
+    embed.add_field(name="Predicted Age", value=str(age_value), inline=False)
+    embed.add_field(name="Based on Samples", value=f"{count:,}", inline=False)
+
+    await interaction.response.send_message(embed=embed)
 
 # Nationality Command
 @client.tree.command(name="nationality", description="Predict nationality from a name")
@@ -96,14 +99,15 @@ async def nationality(interaction: discord.Interaction, name: str):
         await interaction.response.send_message(f"No nationality data found for `{name}`")
         return
 
+    embed = discord.Embed(title=f"Nationality Prediction for {name}", color=discord.Color.green())
+    embed.add_field(name="Name", value=name, inline=False)
     formatted = "\n".join(
         f"**{c['country_id']}** — {round(c['probability'] * 100)}%"
         for c in countries[:5]
     )
+    embed.add_field(name="Top Nationalities", value=formatted, inline=False)
 
-    await interaction.response.send_message(
-        f"**Name:** {name}\n{formatted}"
-    )
+    await interaction.response.send_message(embed=embed)
 
 # Allinfo Command
 @client.tree.command(name="allinfo", description="Predict age, gender, and nationality from a name")
@@ -129,30 +133,52 @@ async def allinfo(interaction: discord.Interaction, name: str, country: Optional
         nat_data = await query_api(session, f"https://api.nationalize.io?name={name}")
         countries = nat_data.get("country", [])
 
-    reply = f"**Name:** {name}\n**Country Applied:** {country if country else 'Global'}\n"
+        # Determine which country code to use for fetching country info
+        country_code_to_use = country
+        if not country_code_to_use and countries:
+            country_code_to_use = countries[0]['country_id']
 
-    # Gender
+        country_name = None
+        country_population = None
+        if country_code_to_use:
+            url = f"https://restcountries.com/v3.1/alpha/{country_code_to_use.lower()}"
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    country_data = await resp.json()
+                    c = country_data[0]
+                    country_name = c['name']['common']
+                    country_population = c.get('population', 'Unknown')
+
+    embed = discord.Embed(title=f"All Info for {name}", color=discord.Color.blue())
+
+    # Gender Field
     if gender_value:
-        reply += f"**Gender:** {gender_value.capitalize()} " \
-                 f"(Probability: {round(probability * 100)}%, " \
-                 f"Based on {gender_count} sample(s))\n"
+        gender_field_value = f"{gender_value.capitalize()} (Probability: {round(probability * 100)}%, Based on {gender_count} sample(s))"
     else:
-        reply += "**Gender:** Unknown\n"
+        gender_field_value = "Unknown"
+    embed.add_field(name="Gender", value=gender_field_value, inline=False)
 
-    # Age
+    # Age Field
     if age_value:
-        reply += f"**Predicted Age:** {age_value} (Based on {age_count} sample(s))\n"
+        age_field_value = f"{age_value} (Based on {age_count} sample(s))"
     else:
-        reply += "**Predicted Age:** Unknown\n"
+        age_field_value = "Unknown"
+    embed.add_field(name="Age", value=age_field_value, inline=False)
 
-    # Nationality
+    # Nationalities Field
     if countries:
         formatted_countries = ", ".join(f"{c['country_id']} ({round(c['probability'] * 100)}%)" for c in countries[:5])
-        reply += f"**Predicted Nationalities (Top 5):** {formatted_countries}"
+        embed.add_field(name="Nationalities (Top 5)", value=formatted_countries, inline=False)
     else:
-        reply += "**Predicted Nationalities:** Unknown"
+        embed.add_field(name="Nationalities", value="Unknown", inline=False)
 
-    await interaction.response.send_message(reply)
+    # Country Info Field
+    if country_name and country_population is not None:
+        label = "Country Applied Info" if country else "Top Predicted Country Info"
+        country_info_value = f"Name: {country_name}\nPopulation: {country_population:,}"
+        embed.add_field(name=label, value=country_info_value, inline=False)
+
+    await interaction.response.send_message(embed=embed)
 
 # Help Command
 @client.tree.command(name="help", description="Show all available commands")
@@ -179,7 +205,47 @@ async def catfact(interaction: discord.Interaction):
     if not fact:
         await interaction.response.send_message("Could not fetch a cat fact")
         return
-    
-    await interaction.response.send_message(f"Cat Fact: {fact}")
+
+    embed = discord.Embed(title="Random Cat Fact", color=discord.Color.gold())
+    embed.description = fact
+
+    await interaction.response.send_message(embed=embed)
+
+# Country Info Command
+@client.tree.command(name="countryinfo", description="Get information about a country by its 2-letter ISO code")
+@app_commands.describe(country="2-letter ISO code of the country")
+async def countryinfo(interaction: discord.Interaction, country: str):
+    if len(country) != 2 or not country.isalpha():
+        await interaction.response.send_message("Please provide a valid 2-letter ISO country code.")
+        return
+
+    async with aiohttp.ClientSession() as session:
+        url = f"https://restcountries.com/v3.1/alpha/{country.lower()}"
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                await interaction.response.send_message(f"Could not find data for `{country}`")
+                return
+            data = await resp.json()
+
+    country_data = data[0]
+    country_name = country_data.get("name", {}).get("common", "Unknown")
+    population = country_data.get("population", "Unknown")
+    area = country_data.get("area", "Unknown")
+    languages = ", ".join(country_data.get("languages", {}).values()) if country_data.get("languages") else "Unknown"
+    currency = ", ".join([f"{v['name']} ({v['symbol']})" for v in country_data.get("currencies", {}).values()]) if country_data.get("currencies") else "Unknown"
+    flag_url = country_data.get("flags", {}).get("png", "")
+
+    area_formatted = f"{area:,}" if isinstance(area, (int, float)) else area
+
+    reply = (
+        f"**Country Name:** {country_name}\n"
+        f"**Population:** {population:,}\n"
+        f"**Area:** {area_formatted} km²\n"
+        f"**Languages:** {languages}\n"
+        f"**Currency:** {currency}\n"
+        f"**Flag:** {flag_url}"
+    )
+
+    await interaction.response.send_message(reply)
 
 client.run(TOKEN)
