@@ -25,25 +25,36 @@ async def query_api(session: aiohttp.ClientSession, url: str) -> dict:
 
 # Gender Command
 @client.tree.command(name="gender", description="Predict gender from a name")
-@app_commands.describe(name="The name to analyze")
-async def gender(interaction: discord.Interaction, name: str):
+@app_commands.describe(
+    name="The name to analyze",
+    country="Optional 2-letter country code (e.g., US, GB, AU, FR)"
+)
+async def gender(interaction: discord.Interaction, name: str, country: Optional[str] = None):
+    url = f"https://api.genderize.io?name={name}"
+    if country:
+        url += f"&country_id={country}"
+
     async with aiohttp.ClientSession() as session:
-        data = await query_api(session, f"https://api.genderize.io?name={name}")
+        data = await query_api(session, url)
 
     gender_value = data.get("gender")
     probability = data.get("probability")
     count = data.get("count")
+    country_used = data.get("country_id")
 
     if gender_value is None:
-        await interaction.response.send_message(f"Could not determine gender for `{name}` 😕")
+        await interaction.response.send_message(f"Could not determine gender for `{name}`")
         return
 
-    await interaction.response.send_message(
-        f"**Name:** {name}\n"
+    reply = f"**Name:** {name}\n"
+    if country_used:
+        reply += f"**Country Applied:** {country_used}\n"
+    reply += (
         f"**Gender:** {gender_value.capitalize()}\n"
         f"**Probability:** {round(probability * 100)}%\n"
         f"**Based on:** {count} sample(s)"
     )
+    await interaction.response.send_message(reply)
 
 # Age Command
 @client.tree.command(name="age", description="Predict age from a name")
