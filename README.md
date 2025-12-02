@@ -1,6 +1,6 @@
 # Discord Bot
 
-A Discord bot that predicts gender, age, and nationality based on a given name using external APIs.
+A Discord bot that predicts gender, age, and nationality based on a given name using external APIs, and provides additional information such as country details and random cat facts.
 
 ## Installation
 
@@ -42,7 +42,7 @@ Make sure your bot is invited to your Discord server with the appropriate permis
 
 ## Commands
 
-The bot uses slash commands. Use `/` in your Discord chat to see available commands.
+Use `/` in your Discord chat to see available commands.
 
 ### `/gender`
 
@@ -50,21 +50,7 @@ Predict gender from a name.
 
 - **Parameters:**
   - `name`: The name to analyze (string)
-
-- **Example:**
-
-  ```text
-  /gender name:Alice country:US
-  ```
-
-- **Response:**
-
-  ```text
-  Name: Alice
-  Gender: Female
-  Probability: 100%
-  Based on: 69089 sample(s)
-  ```
+  - `country` (optional): 2-letter country code (e.g., US, GB)
 
 ### `/age`
 
@@ -72,22 +58,7 @@ Predict age from a name.
 
 - **Parameters:**
   - `name`: The name to analyze (string)
-  - `country` (optional): 2-letter country code (e.g., US, GB, AU, FR)
-
-- **Example:**
-
-  ```text
-  /age name:Alice country:US
-  ```
-
-- **Response:**
-
-  ```text
-  Name: Alice
-  Country Applied: US
-  Predicted Age: 66
-  Based on: 3434 sample(s)
-  ```
+  - `country` (optional): 2-letter country code (e.g., US, GB)
 
 ### `/nationality`
 
@@ -96,71 +67,31 @@ Predict nationality from a name.
 - **Parameters:**
   - `name`: The name to analyze (string)
 
-- **Example:**
-
-  ```text
-  /nationality name:Alice
-  ```
-
-- **Response:**
-
-  ```text
-  Name: Alice
-  CN — 16%
-  IT — 5%
-  CM — 3%
-  RO — 3%
-  HK — 3%
-  ```
-
 ### `/allinfo`
 
 Predict age, gender, and nationality from a name.
 
 - **Parameters:**
   - `name`: The name to analyze (string)
-  - `country` (optional): 2-letter country code for age/gender
+  - `country` (optional): 2-letter country code for age/gender predictions
 
-- **Example:**
+### `/countryinfo`
 
-  ```text
-  /allinfo name:Alice country:US
-  ```
+Get detailed information about a country.
 
-- **Response:**
+- **Parameters:**
+  - `country_code`: **Only accepts 2-letter ISO country codes** (e.g., US, GB, FR)
 
-  ```text
-  Name: Alice
-  Gender: Female (Probability: 100%, Based on 69089 sample(s))
-  Predicted Age: 66 (Based on 3434 sample(s))
-  Predicted Nationalities (Top 5): CN (16%), IT (5%), CM (3%), RO (3%), HK (3%)
-  ```
+### `/catfact`
+
+Get a random cat fact.
 
 ### `/help`
 
 Show all available commands.
 
-- **Example:**
-
-  ```text
-  /help
-  ```
-
-- **Response:**
-
-  ```text
-  Available Commands:
-  /gender — Predict gender from a name
-  /age — Predict age from a name
-  /nationality — Predict nationality from a name
-  /allinfo — Predict age, gender, and nationality from a name
-  /help — Show all available commands
-  and more!
-  ```
-
-### `/catfact`
-
-Get a random cat fact.
+- **Notes:**
+  - Displays a list of commands and brief descriptions in an embed.
 
 ## Notes
 
@@ -169,9 +100,13 @@ Get a random cat fact.
   - [Agify.io](https://agify.io/)
   - [Nationalize.io](https://nationalize.io/)
   - [Catfact.ninja](https://catfact.ninja/)
-
+  - [Rest Countries](https://restcountries.com/)
+  - [api.nationalize.io](https://nationalize.io/)
+  
 - Accuracy depends on the data available in these APIs.
 
 - Country codes should be provided as two-letter ISO codes (e.g., US, GB).
 
 - Make sure your bot has the `applications.commands` scope enabled in the Discord Developer Portal to use slash commands.
+
+- All command responses are now displayed in Discord embeds for enhanced readability and user experience.
