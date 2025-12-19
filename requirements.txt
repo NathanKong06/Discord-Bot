@@ -16,6 +16,8 @@ attrs==25.4.0
     # via aiohttp
 discord-py==2.6.4
     # via -r requirements.in
+dotenv==0.9.9
+    # via -r requirements.in
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -30,6 +32,8 @@ propcache==0.4.1
     # via
     #   aiohttp
     #   yarl
+python-dotenv==1.2.1
+    # via dotenv
 python-env==1.0.0
     # via -r requirements.in
 typing-extensions==4.15.0
